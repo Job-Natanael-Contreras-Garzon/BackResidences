@@ -514,22 +514,6 @@
   - Proceso de auditoría interrumpido
   - Datos de auditoría inconsistentes
 
-### CU-WEB-030: Gestionar Actualizaciones del Sistema
-- **Actor(es)**: Administrador
-- **Descripción**: Permite gestionar actualizaciones y mantenimiento del sistema.
-- **Flujo Principal**:
-  1. El administrador planifica ventana de mantenimiento
-  2. Notifica a usuarios sobre mantenimiento programado
-  3. Ejecuta respaldo completo pre-actualización
-  4. Aplica actualizaciones del sistema
-  5. Valida funcionamiento post-actualización
-  6. Restaura servicio y notifica usuarios
-  7. Documenta cambios aplicados
-- **Flujos Alternativos/Excepciones**:
-  - Actualización genera errores críticos
-  - Rollback necesario a versión anterior
-  - Tiempo de mantenimiento excedido
-
 ---
 
 ## RESUMEN - APLICACIÓN WEB ADMINISTRADOR

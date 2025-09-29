@@ -82,20 +82,6 @@
   - Sin vehículos registrados
   - Error al cargar información
 
-### CU-MOV-006: Solicitar Renovación de Vehículo
-- **Actor(es)**: Residente
-- **Descripción**: Permite solicitar renovación de autorización para vehículos próximos a vencer.
-- **Flujo Principal**:
-  1. El sistema notifica sobre vehículo próximo a vencer
-  2. El residente selecciona renovar
-  3. Confirma datos del vehículo
-  4. Actualiza foto si es necesario
-  5. Envía solicitud de renovación
-- **Flujos Alternativos/Excepciones**:
-  - Vehículo ya vencido
-  - Cambios en datos del vehículo
-  - Error en envío de solicitud
-
 ---
 
 ## MÓDULO 3: PERSONAS AUTORIZADAS
@@ -309,21 +295,6 @@
 ---
 
 ## MÓDULO 8: CONFIGURACIÓN Y SOPORTE
-
-### CU-MOV-020: Configurar Notificaciones
-- **Actor(es)**: Residente
-- **Descripción**: Permite personalizar tipos de notificaciones a recibir.
-- **Flujo Principal**:
-  1. El residente accede a "Configuración"
-  2. Ve opciones de notificaciones disponibles
-  3. Activa/desactiva tipos específicos
-  4. Define horarios para notificaciones
-  5. Guarda preferencias
-- **Flujos Alternativos/Excepciones**:
-  - Error al guardar configuración
-  - Conflicto con políticas del sistema
-  - Permisos de notificación denegados
-
 ### CU-MOV-021: Contactar Soporte Técnico
 - **Actor(es)**: Residente
 - **Descripción**: Permite contactar con soporte para problemas técnicos.
@@ -356,20 +327,6 @@
   - Conflictos en sincronización
   - Datos locales corruptos
   - Error en servidor durante sync
-
-### CU-MOV-023: Actualizar Aplicación
-- **Actor(es)**: Residente, Sistema
-- **Descripción**: Gestiona actualizaciones de la aplicación móvil.
-- **Flujo Principal**:
-  1. El sistema detecta nueva versión disponible
-  2. Notifica al residente sobre actualización
-  3. El residente puede actualizar inmediatamente o después
-  4. Se descarga e instala la nueva versión
-  5. Se migran datos si es necesario
-- **Flujos Alternativos/Excepciones**:
-  - Espacio insuficiente para actualización
-  - Error durante la instalación
-  - Versión incompatible con el dispositivo
 
 ---
 

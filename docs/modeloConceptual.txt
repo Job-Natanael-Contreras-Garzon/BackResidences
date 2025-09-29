@@ -1,0 +1,513 @@
+===============================================================================
+MODELO CONCEPTUAL OPTIMIZADO - BackResidences
+Optimizado para PostgreSQL + Django ORM
+===============================================================================
+
+TIPO_EVENTO
+- ID_TIPOEVE PK()
+- NOMBRE VARCHAR(100) NOT NULL
+- DESCRIPCION TEXT
+- SEVERIDAD INTEGER DEFAULT 1                   ← 1=baja, 2=media, 3=alta, 4=crítica
+- CREATED_AT TIMESTAMP DEFAULT NOW()
+- UPDATED_AT TIMESTAMP DEFAULT NOW()
+- ACTIVO BOOLEAN DEFAULT TRUE
+
+---
+
+EVENTO_SEGURIDAD  
+- ID_EVENTO_SEGURIDAD PK()
+- ID_CAMARA FK(CAMARA)
+- ID_TIPOEVENTO FK(TIPO_EVENTO)
+- ID_USUARIO FK(USUARIO) NULL                   ← Permitir NULL (eventos automáticos)
+- ID_VEHICULO_AUTORIZADO FK(VEHICULO_AUTORIZADO) NULL ← Permitir NULL
+- FECHA_HORA TIMESTAMP NOT NULL
+- DESCRIPCION TEXT
+- EVIDENCIA_URL VARCHAR(500)
+- SEVERIDAD INTEGER DEFAULT 1
+- REVISADO BOOLEAN DEFAULT FALSE
+- RESUELTO_POR FK(USUARIO) NULL
+- FECHA_RESOLUCION TIMESTAMP NULL
+- NOTAS_RESOLUCION TEXT NULL
+
+---
+
+VEHICULO_AUTORIZADO
+- ID_VEHICULOAUTORIZADO PK()
+- ID_USUARIO FK(USUARIO)
+- PLACA VARCHAR(15) UNIQUE NOT NULL
+- MARCA VARCHAR(50) NOT NULL
+- MODELO VARCHAR(50) NOT NULL
+- ANIO INTEGER NOT NULL
+- COLOR VARCHAR(30) NOT NULL
+- TIPO_VEHICULO VARCHAR(20) NOT NULL             ← auto, moto, bicicleta
+- FECHA_REGISTRO TIMESTAMP DEFAULT NOW()
+- ACTIVO BOOLEAN DEFAULT TRUE
+- APROBADO_POR FK(USUARIO) NULL
+- FECHA_APROBACION TIMESTAMP NULL
+
+---
+
+CREDENTIAL_ACCESO
+- ID_CREDENTIAL PK()
+- IDENTIFICADOR VARCHAR(100) NOT NULL
+- TIPO VARCHAR(20) NOT NULL                      ← tarjeta, pin, biometrico, app
+- ESTADO VARCHAR(20) DEFAULT 'activo'            ← activo, bloqueado, vencido
+- ID_USUARIO FK(USUARIO)
+- ID_VEHICULO_AUTORIZADO FK(VEHICULO_AUTORIZADO) NULL ← Permitir NULL
+- FECHA_EMISION TIMESTAMP DEFAULT NOW()
+- FECHA_VENCIMIENTO TIMESTAMP NULL
+- ULTIMO_USO TIMESTAMP NULL
+
+---
+
+USUARIO
+- ID_USUARIO PK()
+- NOMBRE VARCHAR(100) NOT NULL
+- APELLIDO VARCHAR(100) NOT NULL
+- EMAIL VARCHAR(255) UNIQUE NOT NULL
+- PASSWORD VARCHAR(128) NOT NULL
+- TELEFONO VARCHAR(20)
+- DOCUMENTO_TIPO VARCHAR(10) NOT NULL            ← CC, CE, Pasaporte
+- DOCUMENTO_NUMERO VARCHAR(20) UNIQUE NOT NULL
+- FECHA_REGISTRO TIMESTAMP DEFAULT NOW()
+- ACTIVO BOOLEAN DEFAULT TRUE
+- ULTIMO_LOGIN TIMESTAMP NULL
+- EMAIL_VERIFICADO BOOLEAN DEFAULT FALSE
+
+CAMBIO: ❌ Eliminado campo TIPO - Se usa solo USUARIO_ROL
+
+---
+
+ROL
+- ID_ROL PK()
+- NOMBRE VARCHAR(50) UNIQUE NOT NULL
+- DESCRIPCION TEXT
+- CREATED_AT TIMESTAMP DEFAULT NOW()
+- UPDATED_AT TIMESTAMP DEFAULT NOW()
+- ACTIVO BOOLEAN DEFAULT TRUE
+
+CAMBIO: ❌ Eliminado campo PERMISOS JSON - Se usa tabla ROL_PERMISO
+
+---
+
+USUARIO_ROL
+- ID_USUARIO_ROL PK()                            ← Agregado PK para mejor manejo
+- ID_USUARIO FK(USUARIO)
+- ID_ROL FK(ROL)
+- FECHA_ASIGNACION TIMESTAMP DEFAULT NOW()       ← Renombrado de FECHA_GENERACION
+- FECHA_VENCIMIENTO TIMESTAMP NULL               ← Permitir roles permanentes
+- ASIGNADO_POR FK(USUARIO)
+- ACTIVO BOOLEAN DEFAULT TRUE
+
+UNIQUE(ID_USUARIO, ID_ROL, ACTIVO) WHERE ACTIVO = TRUE ← Un rol activo por usuario
+
+---
+
+PERMISO                                          ← NUEVA TABLA
+- ID_PERMISO PK()
+- CODIGO VARCHAR(100) UNIQUE NOT NULL            ← auth.create_user, financial.view_debt
+- NOMBRE VARCHAR(100) NOT NULL
+- DESCRIPCION TEXT
+- MODULO VARCHAR(50) NOT NULL                    ← auth, financial, security, etc.
+- ACTIVO BOOLEAN DEFAULT TRUE
+
+---
+
+ROL_PERMISO                                      ← NUEVA TABLA
+- ID_ROL FK(ROL)
+- ID_PERMISO FK(PERMISO)
+- ASIGNADO_POR FK(USUARIO)
+- FECHA_ASIGNACION TIMESTAMP DEFAULT NOW()
+
+PRIMARY KEY (ID_ROL, ID_PERMISO)
+
+---
+
+TIPO_REPORTE                                     ← NUEVA TABLA
+- ID_TIPO_REPORTE PK()
+- NOMBRE VARCHAR(100) UNIQUE NOT NULL
+- DESCRIPCION TEXT
+- CATEGORIA VARCHAR(50)                          ← tecnico, administrativo, convivencia
+- PRIORIDAD_DEFAULT VARCHAR(20) DEFAULT 'media'  ← baja, media, alta, urgente
+- TIEMPO_RESPUESTA_HORAS INTEGER DEFAULT 24
+- ACTIVO BOOLEAN DEFAULT TRUE
+
+---
+
+REPORTE
+- ID_REPORTE PK()
+- ID_USUARIO FK(USUARIO)
+- ID_VIVIENDA FK(VIVIENDA) NULL
+- ID_TIPO_REPORTE FK(TIPO_REPORTE) NOT NULL      ← CAMBIO: Ahora FK real
+- TITULO VARCHAR(200) NOT NULL
+- DESCRIPCION TEXT NOT NULL
+- PRIORIDAD VARCHAR(20) DEFAULT 'media'
+- ESTADO VARCHAR(20) DEFAULT 'abierto'           ← abierto, en_proceso, resuelto, cerrado
+- FECHA_REGISTRO TIMESTAMP DEFAULT NOW()
+- FECHA_ASIGNACION TIMESTAMP NULL
+- FECHA_RESOLUCION TIMESTAMP NULL
+- ASIGNADO_A FK(USUARIO) NULL
+- EVIDENCIA_FOTO VARCHAR(500) NULL               ← CAMBIO: Renombrado de URL_REPORTE
+
+---
+
+PERSONA_AUTORIZADA
+- ID_PERSONA_AUTORIZADA PK()
+- CEDULA VARCHAR(20) UNIQUE NOT NULL
+- NOMBRE VARCHAR(100) NOT NULL
+- APELLIDO VARCHAR(100) NOT NULL
+- TELEFONO VARCHAR(20)
+- PARENTESCO VARCHAR(50)                         ← familiar, empleado, visitante
+- ID_USUARIO FK(USUARIO)                         ← Quién autorizó
+- ID_VIVIENDA FK(VIVIENDA)
+- ID_CREDENTIAL_ACCESO FK(CREDENTIAL_ACCESO) NULL
+- FECHA_INICIO TIMESTAMP DEFAULT NOW()
+- FECHA_FIN TIMESTAMP NULL                       ← NULL = permanente
+- FECHA_REGISTRO TIMESTAMP DEFAULT NOW()
+- ACTIVA BOOLEAN DEFAULT TRUE
+
+---
+
+BITACORA
+- ID_BITACORA PK()
+- ID_USUARIO FK(USUARIO) NULL                    ← Permitir acciones del sistema
+- FECHA_HORA TIMESTAMP DEFAULT NOW()
+- ACCION VARCHAR(20) NOT NULL                    ← CREATE, UPDATE, DELETE, LOGIN, etc.
+- TABLA VARCHAR(100) NOT NULL
+- ID_REGISTRO_AFECTADO VARCHAR(50)               ← Como string para flexibilidad
+- VALORES_ANTERIORES JSONB NULL                  ← JSONB para mejor performance en PostgreSQL
+- VALORES_NUEVOS JSONB NULL
+- MODULO VARCHAR(50)
+- CONTEXTO TEXT
+- IP_ORIGEN INET                                 ← Tipo nativo PostgreSQL para IPs
+- USER_AGENT TEXT
+- APLICACION VARCHAR(20)                         ← web, mobile, api
+
+---
+
+VIVIENDA
+- ID_VIVIENDA PK()
+- ID_USUARIO_PROPIETARIO FK(USUARIO) NULL
+- ID_USUARIO_INQUILINO FK(USUARIO) NULL
+- IDENTIFICADOR VARCHAR(20) UNIQUE NOT NULL      ← Número/código único
+- BLOQUE VARCHAR(10)
+- PISO INTEGER
+- TIPO VARCHAR(20) NOT NULL                      ← apartamento, casa, local
+- METROS_CUADRADOS DECIMAL(8,2) NOT NULL
+- HABITACIONES INTEGER DEFAULT 0
+- BANOS INTEGER DEFAULT 0
+- CUOTA_ADMINISTRACION DECIMAL(12,2) NOT NULL
+- FECHA_REGISTRO TIMESTAMP DEFAULT NOW()
+- ACTIVO BOOLEAN DEFAULT TRUE
+
+---
+
+MASCOTA
+- ID_MASCOTA PK()
+- NOMBRE VARCHAR(100) NOT NULL
+- ESPECIE VARCHAR(50) NOT NULL
+- RAZA VARCHAR(100)
+- PESO DECIMAL(5,2)
+- COLOR VARCHAR(50)
+- FECHA_NACIMIENTO DATE NULL
+- VACUNAS_AL_DIA BOOLEAN DEFAULT FALSE
+- FOTO_URL VARCHAR(500) NULL
+- FECHA_REGISTRO TIMESTAMP DEFAULT NOW()
+- ID_VIVIENDA FK(VIVIENDA)
+- ACTIVA BOOLEAN DEFAULT TRUE
+
+---
+
+AVISO
+- ID_AVISO PK()
+- ID_USUARIO FK(USUARIO)
+- TITULO VARCHAR(200) NOT NULL
+- CONTENIDO TEXT NOT NULL
+- TIPO VARCHAR(20) DEFAULT 'informativo'         ← informativo, urgente, mantenimiento
+- FECHA_PUBLICACION TIMESTAMP DEFAULT NOW()
+- FECHA_CADUCIDAD TIMESTAMP NULL
+- PRIORIDAD VARCHAR(20) DEFAULT 'normal'         ← baja, normal, alta
+- PUBLICO_OBJETIVO VARCHAR(30) DEFAULT 'todos'   ← todos, propietarios, inquilinos
+- ADJUNTO_URL VARCHAR(500) NULL
+- ACTIVO BOOLEAN DEFAULT TRUE
+
+CAMBIO: ❌ Eliminado campo VISTO_POR JSON - Se usa tabla AVISO_VISTO
+
+---
+
+AVISO_VISTO                                      ← NUEVA TABLA
+- ID_AVISO FK(AVISO)
+- ID_USUARIO FK(USUARIO)
+- FECHA_VISTO TIMESTAMP DEFAULT NOW()
+
+PRIMARY KEY (ID_AVISO, ID_USUARIO)
+
+---
+
+AREA_COMUN
+- ID_AREACOMUN PK()
+- NOMBRE VARCHAR(100) NOT NULL
+- DESCRIPCION TEXT
+- CAPACIDAD INTEGER NOT NULL
+- CAPACIDAD_VEHICULOS INTEGER NULL
+- PRECIO_HORA DECIMAL(10,2) NOT NULL
+- PRECIO_DIA DECIMAL(10,2) NULL
+- SERVICIOS_INCLUIDOS JSONB                      ← ["sonido", "proyector", "wifi"]
+- NORMAS_USO TEXT
+- DEPOSITO_GARANTIA DECIMAL(10,2) DEFAULT 0
+- FOTO_URL VARCHAR(500) NULL
+- ACTIVO BOOLEAN DEFAULT TRUE
+- TIPO_RESERVA VARCHAR(20) NOT NULL              ← por_horas, por_dias, eventos
+
+CAMBIO: ❌ Eliminado HORARIO_DISPONIBLE JSON - Se usa tabla HORARIO_AREA
+
+---
+
+HORARIO_AREA                                     ← NUEVA TABLA
+- ID_HORARIO PK()
+- ID_AREACOMUN FK(AREA_COMUN)
+- DIA_SEMANA INTEGER NOT NULL                    ← 1=Lunes, 7=Domingo
+- HORA_INICIO TIME NOT NULL
+- HORA_FIN TIME NOT NULL
+- ACTIVO BOOLEAN DEFAULT TRUE
+
+UNIQUE(ID_AREACOMUN, DIA_SEMANA, HORA_INICIO, HORA_FIN)
+
+---
+
+RESERVA
+- ID_RESERVA PK()
+- ID_USUARIO FK(USUARIO)
+- ID_AREACOMUN FK(AREA_COMUN)
+- FECHA_INICIO DATE NOT NULL
+- FECHA_FIN DATE NOT NULL
+- HORA_INICIO TIME NOT NULL
+- HORA_FIN TIME NOT NULL
+- MONTO_TOTAL DECIMAL(10,2) NOT NULL
+- MONTO_PAGADO DECIMAL(10,2) DEFAULT 0
+- METODO_PAGO VARCHAR(30) NULL                   ← efectivo, transferencia, etc.
+- ESTADO VARCHAR(20) DEFAULT 'pendiente'         ← pendiente, confirmada, cancelada, completada
+- MOTIVO_EVENTO VARCHAR(200)
+- NUMERO_PERSONAS INTEGER
+- FECHA_CREACION TIMESTAMP DEFAULT NOW()
+- CANCELADA_POR FK(USUARIO) NULL
+- FECHA_CANCELACION TIMESTAMP NULL
+
+---
+
+DEUDA
+- ID_DEUDA PK()
+- ID_VIVIENDA FK(VIVIENDA)
+- PERIODO_MES INTEGER NOT NULL                   ← 1-12
+- PERIODO_ANO INTEGER NOT NULL
+- MONTO_TOTAL DECIMAL(12,2) NOT NULL
+- FECHA_EMISION DATE NOT NULL
+- FECHA_VENCIMIENTO DATE NOT NULL
+- INTERES_MORA DECIMAL(5,2) DEFAULT 0            ← Porcentaje
+- DESCUENTO DECIMAL(10,2) DEFAULT 0
+- ESTADO VARCHAR(20) DEFAULT 'pendiente'         ← pendiente, parcial, pagada, vencida
+- NUMERO_FACTURA VARCHAR(50) UNIQUE NOT NULL
+- OBSERVACIONES TEXT NULL
+
+CAMBIO: ❌ Eliminados campos calculados MONTO_PAGADO y SALDO_PENDIENTE
+
+---
+
+-- VISTA PARA SALDOS (en lugar de campos calculados)
+CREATE VIEW vw_deuda_con_saldo AS
+SELECT d.*,
+       COALESCE(SUM(p.monto_pagado), 0) AS monto_pagado,
+       d.monto_total - COALESCE(SUM(p.monto_pagado), 0) AS saldo_pendiente
+FROM deuda d
+LEFT JOIN pago p ON d.id_deuda = p.id_deuda AND p.estado = 'verificado'
+GROUP BY d.id_deuda;
+
+---
+
+DETALLE_DEUDA
+- ID_DETALLE PK()
+- ID_DEUDA FK(DEUDA)
+- CONCEPTO VARCHAR(100) NOT NULL                 ← administracion, agua, gas, etc.
+- CANTIDAD DECIMAL(10,2) DEFAULT 1
+- PRECIO_UNITARIO DECIMAL(10,2) NOT NULL
+- MONTO DECIMAL(12,2) NOT NULL                   ← cantidad * precio_unitario
+- DETALLE TEXT
+- PERIODO_CONSUMO VARCHAR(50) NULL               ← "2024-01", "2024-Q1"
+- BASE_CALCULO VARCHAR(20) NULL                  ← m2, kWh, m3, etc.
+
+---
+
+MANTENIMIENTO
+- ID_MANTENIMIENTO PK()
+- ENTIDAD_TIPO VARCHAR(20) NOT NULL              ← 'VIVIENDA' o 'AREA_COMUN'
+- ENTIDAD_ID INTEGER NOT NULL                    ← ID de la vivienda o área común
+- ID_REPORTADO_POR FK(USUARIO)
+- DESCRIPCION TEXT NOT NULL
+- DIAGNOSTICO TEXT NULL
+- TIPO VARCHAR(20) NOT NULL                      ← preventivo, correctivo, urgente
+- PRIORIDAD VARCHAR(20) NOT NULL                 ← baja, media, alta, critica
+- ESTADO VARCHAR(20) DEFAULT 'solicitado'        ← solicitado, asignado, en_proceso, completado
+- FECHA_SOLICITUD TIMESTAMP DEFAULT NOW()
+- FECHA_ASIGNACION TIMESTAMP NULL
+- ASIGNADO_A FK(USUARIO) NULL
+- FECHA_COMPLETADO TIMESTAMP NULL
+- COSTO_MATERIALES DECIMAL(12,2) DEFAULT 0
+- COSTO_MANO_OBRA DECIMAL(12,2) DEFAULT 0
+- COSTO DECIMAL(12,2) GENERATED ALWAYS AS (COSTO_MATERIALES + COSTO_MANO_OBRA) STORED
+- PROVEEDOR VARCHAR(200)
+- GARANTIA_MESES INTEGER NULL
+- EVIDENCIA_ANTES VARCHAR(500) NULL
+- EVIDENCIA_DESPUES VARCHAR(500) NULL
+
+CAMBIO: ✅ Relación polimórfica para VIVIENDA/AREA_COMUN
+CAMBIO: ✅ Campo COSTO calculado automáticamente por PostgreSQL
+
+---
+
+TIPO_PAGO                                        ← NUEVA TABLA
+- ID_TIPO_PAGO PK()
+- NOMBRE VARCHAR(50) UNIQUE NOT NULL             ← efectivo, transferencia, cheque
+- DESCRIPCION TEXT
+- REQUIERE_COMPROBANTE BOOLEAN DEFAULT FALSE
+- VERIFICACION_AUTOMATICA BOOLEAN DEFAULT FALSE
+- ACTIVO BOOLEAN DEFAULT TRUE
+
+---
+
+PAGO
+- ID_PAGO PK()
+- ID_DEUDA FK(DEUDA)
+- ID_USUARIO FK(USUARIO)                         ← Quién registró el pago
+- ID_TIPO_PAGO FK(TIPO_PAGO)
+- MONTO_PAGADO DECIMAL(12,2) NOT NULL
+- FECHA_PAGO DATE NOT NULL
+- NUMERO_REFERENCIA VARCHAR(100)
+- COMPROBANTE_URL VARCHAR(500) NULL
+- ESTADO VARCHAR(20) DEFAULT 'pendiente'         ← pendiente, verificado, rechazado
+- VERIFICADO_POR FK(USUARIO) NULL
+- FECHA_VERIFICACION TIMESTAMP NULL
+- OBSERVACIONES TEXT NULL
+
+---
+
+ZONA
+- ID_ZONA PK()
+- ID_AREACOMUN FK(AREA_COMUN) NULL               ← Permitir zonas independientes
+- NOMBRE VARCHAR(100) NOT NULL
+- TIPO VARCHAR(50) NOT NULL                      ← entrada, parqueadero, lobby, piscina
+- DESCRIPCION TEXT
+- NIVEL_SEGURIDAD VARCHAR(20) DEFAULT 'medio'    ← bajo, medio, alto
+- HORARIO_VIGILANCIA JSONB                       ← Horarios por día
+- ACTIVA BOOLEAN DEFAULT TRUE
+
+---
+
+CAMARA
+- ID_CAMARA PK()
+- ID_ZONA FK(ZONA)
+- NOMBRE VARCHAR(100) NOT NULL
+- UBICACION VARCHAR(200) NOT NULL
+- DIRECCION_IP INET NOT NULL                     ← Tipo nativo PostgreSQL
+- PUERTO INTEGER DEFAULT 80
+- USUARIO_CAMARA VARCHAR(50)
+- PASSWORD_CAMARA VARCHAR(100)                   ← Debería estar encriptado
+- URL_STREAM VARCHAR(500)
+- MODELO VARCHAR(100)
+- RESOLUCION VARCHAR(20)                         ← 1080p, 4K, etc.
+- VISION_NOCTURNA BOOLEAN DEFAULT FALSE
+- ANGULO_VISION INTEGER                          ← Grados
+- FECHA_INSTALACION DATE
+- ULTIMO_MANTENIMIENTO DATE NULL
+- ACTIVA BOOLEAN DEFAULT TRUE
+
+---
+
+CONFIGURACION_SISTEMA                            ← NUEVA TABLA
+- ID_CONFIG PK()
+- PARAMETRO VARCHAR(100) UNIQUE NOT NULL
+- VALOR TEXT NOT NULL
+- TIPO VARCHAR(20) NOT NULL                      ← string, number, boolean, json
+- DESCRIPCION TEXT
+- MODULO VARCHAR(50)
+- EDITABLE BOOLEAN DEFAULT TRUE
+- FECHA_MODIFICACION TIMESTAMP DEFAULT NOW()
+- MODIFICADO_POR FK(USUARIO) NULL
+
+---
+
+NOTIFICACION                                     ← NUEVA TABLA
+- ID_NOTIFICACION PK()
+- ID_USUARIO FK(USUARIO)
+- TITULO VARCHAR(200) NOT NULL
+- MENSAJE TEXT NOT NULL
+- TIPO VARCHAR(20) DEFAULT 'info'                ← info, warning, error, success
+- CANAL VARCHAR(20) DEFAULT 'sistema'            ← email, push, sms, sistema
+- REFERENCIA_TABLA VARCHAR(100) NULL
+- REFERENCIA_ID VARCHAR(50) NULL
+- FECHA_CREACION TIMESTAMP DEFAULT NOW()
+- FECHA_ENVIO TIMESTAMP NULL
+- FECHA_LEIDO TIMESTAMP NULL
+- ESTADO VARCHAR(20) DEFAULT 'pendiente'         ← pendiente, enviada, leida, error
+- INTENTOS_ENVIO INTEGER DEFAULT 0
+
+---
+
+===============================================================================
+ÍNDICES SUGERIDOS PARA POSTGRESQL
+===============================================================================
+
+-- Índices para mejorar performance de consultas frecuentes
+CREATE INDEX idx_usuario_email ON usuario(email);
+CREATE INDEX idx_usuario_documento ON usuario(documento_numero);
+CREATE INDEX idx_vehiculo_placa ON vehiculo_autorizado(placa);
+CREATE INDEX idx_deuda_vivienda_periodo ON deuda(id_vivienda, periodo_ano, periodo_mes);
+CREATE INDEX idx_pago_fecha ON pago(fecha_pago);
+CREATE INDEX idx_evento_fecha ON evento_seguridad(fecha_hora DESC);
+CREATE INDEX idx_bitacora_fecha_usuario ON bitacora(fecha_hora DESC, id_usuario);
+CREATE INDEX idx_reserva_fecha_area ON reserva(fecha_inicio, id_areacomun);
+CREATE INDEX idx_notificacion_usuario_estado ON notificacion(id_usuario, estado);
+
+-- Índices JSONB para campos JSON
+CREATE INDEX idx_area_servicios ON area_comun USING GIN(servicios_incluidos);
+CREATE INDEX idx_bitacora_valores ON bitacora USING GIN(valores_anteriores, valores_nuevos);
+CREATE INDEX idx_zona_horario ON zona USING GIN(horario_vigilancia);
+
+===============================================================================
+TRIGGERS SUGERIDOS PARA POSTGRESQL
+===============================================================================
+
+-- Trigger para actualizar updated_at automáticamente
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Aplicar a tablas que tienen updated_at
+CREATE TRIGGER update_tipo_evento_updated_at BEFORE UPDATE ON tipo_evento 
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_rol_updated_at BEFORE UPDATE ON rol 
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Trigger para auditoría automática en tablas críticas
+CREATE OR REPLACE FUNCTION audit_trigger_function()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'DELETE' THEN
+        INSERT INTO bitacora(tabla, accion, id_registro_afectado, valores_anteriores)
+        VALUES (TG_TABLE_NAME, 'DELETE', OLD.id_usuario::text, to_jsonb(OLD));
+        RETURN OLD;
+    ELSIF TG_OP = 'UPDATE' THEN
+        INSERT INTO bitacora(tabla, accion, id_registro_afectado, valores_anteriores, valores_nuevos)
+        VALUES (TG_TABLE_NAME, 'UPDATE', NEW.id_usuario::text, to_jsonb(OLD), to_jsonb(NEW));
+        RETURN NEW;
+    ELSIF TG_OP = 'INSERT' THEN
+        INSERT INTO bitacora(tabla, accion, id_registro_afectado, valores_nuevos)
+        VALUES (TG_TABLE_NAME, 'INSERT', NEW.id_usuario::text, to_jsonb(NEW));
+        RETURN NEW;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;

@@ -1,10 +1,25 @@
 # BackResidences
 
 ## Sistema de Gestión Integral para Condominios
+🏠 PÁGINA PRINCIPAL
+http://127.0.0.1:8000/                    → Redirige automáticamente a /docs/
+
+📖 DOCUMENTACIÓN API
+http://127.0.0.1:8000/docs/               → Swagger UI (Principal)
+http://127.0.0.1:8000/swagger/            → Swagger UI (Alternativo)
+http://127.0.0.1:8000/redoc/              → ReDoc (Vista alternativa elegante)
+
+🔧 ESQUEMAS
+http://127.0.0.1:8000/swagger.json        → Schema JSON
+http://127.0.0.1:8000/swagger.yaml        → Schema YAML
+
+⚙️ ADMINISTRACIÓN
+http://127.0.0.1:8000/admin/              → Panel de administración Django
 
 ### Documentación de Casos de Uso
 
 Este proyecto contiene la documentación completa de casos de uso para el desarrollo del backend del Sistema de Gestión Integral para Condominios, separados por tipo de usuario y plataforma:
+
 
 #### 📱 **RESIDENTES (Aplicación Móvil)**
 - **Archivo**: `CASOS_USO_RESIDENTES_MOVIL.md`

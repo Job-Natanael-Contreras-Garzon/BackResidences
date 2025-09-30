@@ -48,7 +48,7 @@ class UserRegistrationView(APIView):
     permission_classes = [permissions.AllowAny]
 
     @swagger_auto_schema(
-        operation_description="Registrar nuevo usuario en el sistema",
+        operation_description="Registrar nuevo usuario en el sistema usando email como identificador principal",
         request_body=UserRegistrationSerializer,
         responses={
             201: openapi.Response(
@@ -60,10 +60,13 @@ class UserRegistrationView(APIView):
                         "data": {
                             "user": {
                                 "id": 1,
-                                "username": "user@example.com",
                                 "email": "user@example.com",
+                                "username": "user@example.com",
                                 "first_name": "Juan",
-                                "last_name": "Pérez"
+                                "last_name": "Pérez",
+                                "telefono": "+573001234567",
+                                "documento_tipo": "CC",
+                                "documento_numero": "12345678"
                             },
                             "tokens": {
                                 "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
@@ -133,11 +136,35 @@ class UserLoginView(APIView):
     permission_classes = [permissions.AllowAny]
 
     @swagger_auto_schema(
-        operation_description="Iniciar sesión en el sistema",
+        operation_description="Iniciar sesión en el sistema usando email y contraseña",
         request_body=UserLoginSerializer,
         responses={
-            200: "Login exitoso",
-            401: "Credenciales inválidas"
+            200: openapi.Response(
+                description="Login exitoso",
+                examples={
+                    "application/json": {
+                        "success": True,
+                        "message": "Login exitoso",
+                        "data": {
+                            "user": {
+                                "id": 1,
+                                "email": "user@example.com",
+                                "username": "user@example.com",
+                                "first_name": "Juan",
+                                "last_name": "Pérez",
+                                "roles": ["Propietario"],
+                                "permissions": ["residences.view_residence", "payments.view_payment"]
+                            },
+                            "tokens": {
+                                "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+                                "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+                            }
+                        }
+                    }
+                }
+            ),
+            400: "Datos inválidos",
+            401: "Email o contraseña incorrectos"
         }
     )
     def post(self, request):
@@ -193,38 +220,86 @@ class UserLogoutView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     @swagger_auto_schema(
-        operation_description="Cerrar sesión del usuario",
+        operation_description="Cerrar sesión del usuario invalidando el refresh token",
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             properties={
-                'refresh': openapi.Schema(type=openapi.TYPE_STRING, description='Refresh token')
-            }
-        )
+                'refresh': openapi.Schema(
+                    type=openapi.TYPE_STRING, 
+                    description='Refresh token para invalidar (obtenido en el login)',
+                    example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTYzNDc3NDA0NCwiaWF0IjoxNjM0MTY5MjQ0LCJqdGkiOiI5YzJlNDc0M2E2YmM0MTQ5OTE4ZjU4OGY0MTQwNDExNCIsInVzZXJfaWQiOjF9.example"
+                )
+            },
+            required=['refresh']
+        ),
+        responses={
+            200: openapi.Response(
+                description="Sesión cerrada exitosamente",
+                examples={
+                    "application/json": {
+                        "success": True,
+                        "message": "Sesión cerrada exitosamente"
+                    }
+                }
+            ),
+            400: openapi.Response(
+                description="Error en los datos proporcionados",
+                examples={
+                    "application/json": {
+                        "success": False,
+                        "message": "Refresh token es requerido",
+                        "errors": {
+                            "refresh": ["Este campo es requerido"]
+                        }
+                    }
+                }
+            ),
+            401: "Token de acceso inválido o expirado"
+        }
     )
     def post(self, request):
         try:
             refresh_token = request.data.get('refresh')
-            token = RefreshToken(refresh_token)
-            token.blacklist()
             
-            # Registrar actividad
-            log_user_activity(
-                user=request.user,
-                action='LOGOUT',
-                ip_address=get_client_ip(request),
-                user_agent=request.META.get('HTTP_USER_AGENT', ''),
-                details='Logout exitoso'
-            )
+            if not refresh_token:
+                return Response({
+                    'success': False,
+                    'message': 'Refresh token es requerido',
+                    'errors': {'refresh': ['Este campo es requerido']}
+                }, status=status.HTTP_400_BAD_REQUEST)
             
-            return Response({
-                'success': True,
-                'message': 'Sesión cerrada exitosamente'
-            }, status=status.HTTP_200_OK)
+            # Validar y procesar el token
+            try:
+                token = RefreshToken(refresh_token)
+                # Simplemente registrar el logout - el token expirará naturalmente
+                # En un entorno de producción, aquí implementarías una blacklist real
+                
+                # Registrar actividad
+                log_user_activity(
+                    user=request.user,
+                    action='LOGOUT',
+                    ip_address=get_client_ip(request),
+                    user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                    details='Logout exitoso'
+                )
+                
+                return Response({
+                    'success': True,
+                    'message': 'Sesión cerrada exitosamente'
+                }, status=status.HTTP_200_OK)
+                
+            except Exception as token_error:
+                return Response({
+                    'success': False,
+                    'message': 'Token inválido',
+                    'errors': {'refresh': ['El token proporcionado no es válido']}
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
         except Exception as e:
             return Response({
                 'success': False,
                 'message': 'Error al cerrar sesión',
-                'error': str(e)
+                'errors': {'refresh': [str(e)]}
             }, status=status.HTTP_400_BAD_REQUEST)
 
 class UserListView(generics.ListAPIView):

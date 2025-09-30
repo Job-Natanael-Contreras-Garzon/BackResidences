@@ -29,7 +29,9 @@ POST /api/auth/register/
   "documento_numero": "1234567890"
 }
 ```
-
+            ('CC', 'Cédula de Ciudadanía'),
+            ('CE', 'Cédula de Extranjería'),
+            ('PAS', 'Pasaporte')
 **Response 201 Created:**
 ```json
 {

@@ -3,13 +3,23 @@ from django.db import models
 from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
 from datetime import datetime, timedelta
+from typing import TYPE_CHECKING
 from apps.core.models import BaseModel
 from apps.authentication.models import User
 from apps.residences.models import Vivienda
 
+# Evitar imports circulares
+if TYPE_CHECKING:
+    from django.db.models import QuerySet
+
 
 class ConceptoPago(BaseModel):
     """Conceptos de pago disponibles en el condominio"""
+    
+    # Relación inversa para type hints
+    if TYPE_CHECKING:
+        facturas: 'QuerySet[Factura]'
+    
     nombre = models.CharField(max_length=100, unique=True, verbose_name="Nombre")
     descripcion = models.TextField(verbose_name="Descripción")
     tipo = models.CharField(
@@ -64,12 +74,12 @@ class ConceptoPago(BaseModel):
     @property
     def total_facturas_generadas(self):
         """Total de facturas generadas para este concepto"""
-        return self.factura_set.count()
+        return self.facturas.count()
         
     @property
     def total_recaudado(self):
         """Total recaudado para este concepto"""
-        return self.factura_set.filter(estado='pagada').aggregate(
+        return self.facturas.filter(estado='pagada').aggregate(
             total=models.Sum('monto_total')
         )['total'] or Decimal('0.00')
 
@@ -109,7 +119,12 @@ class Factura(BaseModel):
     """Facturas generadas para las viviendas"""
     numero_factura = models.CharField(max_length=50, unique=True, verbose_name="Número de factura")
     vivienda = models.ForeignKey(Vivienda, on_delete=models.CASCADE, verbose_name="Vivienda")
-    concepto = models.ForeignKey(ConceptoPago, on_delete=models.CASCADE, verbose_name="Concepto")
+    concepto = models.ForeignKey(
+        ConceptoPago, 
+        on_delete=models.CASCADE, 
+        related_name='facturas',
+        verbose_name="Concepto"
+    )
     periodo = models.CharField(max_length=7, verbose_name="Periodo (YYYY-MM)")  # 2025-10
     fecha_generacion = models.DateTimeField(default=timezone.now, verbose_name="Fecha de generación")
     fecha_vencimiento = models.DateTimeField(verbose_name="Fecha de vencimiento")
@@ -211,7 +226,13 @@ class Pago(BaseModel):
         verbose_name="Monto total",
         validators=[MinValueValidator(Decimal('0.01'))]
     )
-    metodo_pago = models.ForeignKey(MetodoPago, on_delete=models.CASCADE, verbose_name="Método de pago")
+    metodo_pago = models.ForeignKey(
+        MetodoPago, 
+        on_delete=models.CASCADE, 
+        null=True, 
+        blank=True,
+        verbose_name="Método de pago"
+    )
     numero_referencia = models.CharField(max_length=100, blank=True, verbose_name="Número de referencia")
     fecha_pago = models.DateTimeField(verbose_name="Fecha de pago")
     fecha_registro = models.DateTimeField(default=timezone.now, verbose_name="Fecha de registro")

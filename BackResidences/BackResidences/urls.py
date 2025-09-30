@@ -121,10 +121,8 @@ urlpatterns = [
     path('api/v1/communications/', include(('apps.communications.urls', 'communications'), namespace='api_communications')),
     path('api/v1/maintenance/', include(('apps.maintenance.urls', 'maintenance'), namespace='api_maintenance')),
     path('api/v1/security/', include(('apps.security.urls', 'security'), namespace='api_security')),
+    path('api/v1/payments/', include(('apps.payments.urls', 'payments'), namespace='api_payments')),
     
     # Mantener la ruta original para compatibilidad
     path('auth/', include('apps.authentication.urls')),
-    
-    # Rutas comentadas para futuros módulos
-    # path('api/v1/payments/', include('apps.payments.urls'));
 ]

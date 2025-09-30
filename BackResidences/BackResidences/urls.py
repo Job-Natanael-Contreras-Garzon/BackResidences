@@ -75,12 +75,21 @@ schema_view = get_schema_view(
         - Mantenimiento preventivo programado
         - Dashboard con estadísticas y KPIs
         
-        ### 📋 Endpoints principales:
+        ### � Seguridad (`/api/v1/security/`)
+        - Gestión de eventos de seguridad e incidentes
+        - Control de vehículos autorizados y aprobaciones
+        - Monitoreo de cámaras de vigilancia
+        - Sistema de credenciales de acceso
+        - Dashboard en tiempo real con métricas
+        - Reportes y análisis de seguridad
+        
+        ### �📋 Endpoints principales:
         - `/api/v1/auth/` - Autenticación y gestión de usuarios
         - `/api/v1/residences/` - Gestión completa de residencias
         - `/api/v1/common-areas/` - Sistema completo de áreas comunes
         - `/api/v1/communications/` - Sistema completo de comunicaciones
         - `/api/v1/maintenance/` - Sistema completo de mantenimiento
+        - `/api/v1/security/` - Sistema completo de seguridad
         - `/docs/` - Esta documentación
         - `/admin/` - Panel de administración Django
         """,
@@ -111,10 +120,11 @@ urlpatterns = [
     path('api/v1/common-areas/', include(('apps.common_areas.urls', 'common_areas'), namespace='api_common_areas')),
     path('api/v1/communications/', include(('apps.communications.urls', 'communications'), namespace='api_communications')),
     path('api/v1/maintenance/', include(('apps.maintenance.urls', 'maintenance'), namespace='api_maintenance')),
+    path('api/v1/security/', include(('apps.security.urls', 'security'), namespace='api_security')),
     
     # Mantener la ruta original para compatibilidad
     path('auth/', include('apps.authentication.urls')),
     
-    # path('api/v1/security/', include('apps.security.urls')),
+    # Rutas comentadas para futuros módulos
     # path('api/v1/payments/', include('apps.payments.urls'));
 ]

@@ -59,10 +59,28 @@ schema_view = get_schema_view(
         - Control de horarios y tarifas
         - Gestión de pagos y depósitos
         
+        ### 📞 Comunicaciones (`/api/v1/communications/`)
+        - Sistema de anuncios y notificaciones
+        - Gestión de reportes y solicitudes
+        - Dashboard con estadísticas de efectividad
+        - Control de visualizaciones y engagement
+        - Configuración de tipos de reportes
+        - Seguimiento de tiempos de respuesta
+        
+        ### 🔧 Mantenimiento (`/api/v1/maintenance/`)
+        - Gestión completa de solicitudes de mantenimiento
+        - Sistema de órdenes de trabajo y asignación
+        - Control de proveedores y servicios
+        - Inventario de materiales y herramientas
+        - Mantenimiento preventivo programado
+        - Dashboard con estadísticas y KPIs
+        
         ### 📋 Endpoints principales:
         - `/api/v1/auth/` - Autenticación y gestión de usuarios
         - `/api/v1/residences/` - Gestión completa de residencias
         - `/api/v1/common-areas/` - Sistema completo de áreas comunes
+        - `/api/v1/communications/` - Sistema completo de comunicaciones
+        - `/api/v1/maintenance/` - Sistema completo de mantenimiento
         - `/docs/` - Esta documentación
         - `/admin/` - Panel de administración Django
         """,
@@ -91,6 +109,8 @@ urlpatterns = [
     path('api/v1/auth/', include(('apps.authentication.urls', 'auth'), namespace='api_auth')),
     path('api/v1/residences/', include(('apps.residences.urls', 'residences'), namespace='api_residences')),
     path('api/v1/common-areas/', include(('apps.common_areas.urls', 'common_areas'), namespace='api_common_areas')),
+    path('api/v1/communications/', include(('apps.communications.urls', 'communications'), namespace='api_communications')),
+    path('api/v1/maintenance/', include(('apps.maintenance.urls', 'maintenance'), namespace='api_maintenance')),
     
     # Mantener la ruta original para compatibilidad
     path('auth/', include('apps.authentication.urls')),

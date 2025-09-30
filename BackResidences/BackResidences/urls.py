@@ -20,10 +20,13 @@ schema_view = get_schema_view(
         ## Características principales:
         - 🔐 Autenticación JWT
         - 👥 Gestión de usuarios y roles
-        - 🏠 Gestión de residencias
-        - 💰 Sistema de pagos
+        - 🏠 Gestión de residencias y viviendas
+        - �‍👩‍👧‍👦 Control de personas autorizadas
+        - 🐕 Registro de mascotas
+        - �💰 Sistema de pagos
         - 🔒 Control de acceso
         - 🏊 Gestión de áreas comunes
+        - 📊 Dashboard y reportes
         
         ## Autenticación:
         Esta API utiliza JWT (JSON Web Tokens) para la autenticación.
@@ -32,8 +35,25 @@ schema_view = get_schema_view(
         2. Hacer login en `/api/v1/auth/login/` para obtener tokens
         3. Usar el token de acceso en el header: `Authorization: Bearer <token>`
         
-        ## Endpoints principales:
+        ## Módulos disponibles:
+        
+        ### 🔐 Autenticación (`/api/v1/auth/`)
+        - Registro y login de usuarios
+        - Gestión de perfiles
+        - Control de roles y permisos
+        - Actividad de usuarios
+        
+        ### 🏠 Residencias (`/api/v1/residences/`)
+        - Gestión de viviendas y apartamentos
+        - Asignación de propietarios e inquilinos
+        - Control de personas autorizadas
+        - Registro de mascotas
+        - Dashboard con estadísticas
+        - Búsqueda de residentes
+        
+        ### 📋 Endpoints principales:
         - `/api/v1/auth/` - Autenticación y gestión de usuarios
+        - `/api/v1/residences/` - Gestión completa de residencias
         - `/docs/` - Esta documentación
         - `/admin/` - Panel de administración Django
         """,
@@ -60,12 +80,12 @@ urlpatterns = [
     
     # =================== API ENDPOINTS ===================
     path('api/v1/auth/', include(('apps.authentication.urls', 'auth'), namespace='api_auth')),
+    path('api/v1/residences/', include(('apps.residences.urls', 'residences'), namespace='api_residences')),
     
     # Mantener la ruta original para compatibilidad
     path('auth/', include('apps.authentication.urls')),
     
     # path('api/v1/security/', include('apps.security.urls')),
-    # path('api/v1/residences/', include('apps.residences.urls')),
     # path('api/v1/payments/', include('apps.payments.urls')),
     # path('api/v1/common-areas/', include('apps.common_areas.urls')),
 ]

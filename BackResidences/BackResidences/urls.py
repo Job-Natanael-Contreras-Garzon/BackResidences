@@ -51,9 +51,18 @@ schema_view = get_schema_view(
         - Dashboard con estadísticas
         - Búsqueda de residentes
         
+        ### 🏊 Áreas Comunes (`/api/v1/common-areas/`)
+        - Gestión de áreas comunes del condominio
+        - Sistema de reservas con validación de conflictos
+        - Consulta de disponibilidad en tiempo real
+        - Dashboard con estadísticas de uso
+        - Control de horarios y tarifas
+        - Gestión de pagos y depósitos
+        
         ### 📋 Endpoints principales:
         - `/api/v1/auth/` - Autenticación y gestión de usuarios
         - `/api/v1/residences/` - Gestión completa de residencias
+        - `/api/v1/common-areas/` - Sistema completo de áreas comunes
         - `/docs/` - Esta documentación
         - `/admin/` - Panel de administración Django
         """,
@@ -81,11 +90,11 @@ urlpatterns = [
     # =================== API ENDPOINTS ===================
     path('api/v1/auth/', include(('apps.authentication.urls', 'auth'), namespace='api_auth')),
     path('api/v1/residences/', include(('apps.residences.urls', 'residences'), namespace='api_residences')),
+    path('api/v1/common-areas/', include(('apps.common_areas.urls', 'common_areas'), namespace='api_common_areas')),
     
     # Mantener la ruta original para compatibilidad
     path('auth/', include('apps.authentication.urls')),
     
     # path('api/v1/security/', include('apps.security.urls')),
-    # path('api/v1/payments/', include('apps.payments.urls')),
-    # path('api/v1/common-areas/', include('apps.common_areas.urls')),
+    # path('api/v1/payments/', include('apps.payments.urls'));
 ]

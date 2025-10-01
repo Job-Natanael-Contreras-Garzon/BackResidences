@@ -82,10 +82,8 @@ urlpatterns = [
     path('api/v1/auth/', include(('apps.authentication.urls', 'auth'), namespace='api_auth')),
     path('api/v1/residences/', include(('apps.residences.urls', 'residences'), namespace='api_residences')),
     
-    # Mantener la ruta original para compatibilidad
-    path('auth/', include('apps.authentication.urls')),
-    
-    # path('api/v1/security/', include('apps.security.urls')),
+    path('api/v1/maintenance/', include('apps.maintenance.urls')),
+    path('api/v1/security/', include('apps.security.urls')),
     # path('api/v1/payments/', include('apps.payments.urls')),
-    # path('api/v1/common-areas/', include('apps.common_areas.urls')),
+    path('api/v1/common-areas/', include('apps.common_areas.urls')),
 ]

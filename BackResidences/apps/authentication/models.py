@@ -49,7 +49,7 @@ class User(AbstractUser):
     email_verificado = models.BooleanField(default=False, verbose_name="Email verificado")
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'documento_numero']
+    REQUIRED_FIELDS = ['documento_numero']
 
     def __str__(self):
         return f"{self.email} - {self.get_full_name()}"

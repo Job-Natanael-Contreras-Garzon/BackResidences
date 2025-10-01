@@ -1,7 +1,8 @@
 from django.shortcuts import render
 from rest_framework import viewsets
-from .models import EventoSeguridad, TipoEvento, VehiculoAutorizado, Usuario
-from .serializers import EventoSeguridadSerializer, TipoEventoSerializer, VehiculoAutorizadoSerializer, UsuarioSerializer
+from .models import EventoSeguridad, TipoEvento, VehiculoAutorizado
+from apps.authentication.models import User as Usuario
+from .serializers import EventoSeguridadSerializer, TipoEventoSerializer, VehiculoAutorizadoSerializer
 
 class EventoSeguridadViewSet(viewsets.ModelViewSet):
     queryset = EventoSeguridad.objects.all()
@@ -14,7 +15,3 @@ class TipoEventoViewSet(viewsets.ModelViewSet):
 class VehiculoAutorizadoViewSet(viewsets.ModelViewSet):
     queryset = VehiculoAutorizado.objects.all()
     serializer_class = VehiculoAutorizadoSerializer
-
-class UsuarioViewSet(viewsets.ModelViewSet):
-    queryset = Usuario.objects.all()
-    serializer_class = UsuarioSerializer

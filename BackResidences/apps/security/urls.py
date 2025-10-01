@@ -1,12 +1,12 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 from . import views
 
+router = DefaultRouter()
+router.register(r'events', views.EventoSeguridadViewSet)
+router.register(r'event-types', views.TipoEventoViewSet)
+router.register(r'vehicles', views.VehiculoAutorizadoViewSet)
+
 urlpatterns = [
-    # Define your security-related URL patterns here
-    path('eventos/', views.EventoListView.as_view(), name='evento-list'),
-    path('eventos/<int:pk>/', views.EventoDetailView.as_view(), name='evento-detail'),
-    path('vehiculos-autorizados/', views.VehiculoAutorizadoListView.as_view(), name='vehiculo-autorizado-list'),
-    path('vehiculos-autorizados/<int:pk>/', views.VehiculoAutorizadoDetailView.as_view(), name='vehiculo-autorizado-detail'),
-    path('credenciales-acceso/', views.CredentialAccesoListView.as_view(), name='credential-acceso-list'),
-    path('credenciales-acceso/<int:pk>/', views.CredentialAccesoDetailView.as_view(), name='credential-acceso-detail'),
+    path('', include(router.urls)),
 ]

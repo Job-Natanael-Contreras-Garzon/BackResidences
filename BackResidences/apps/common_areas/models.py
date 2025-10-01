@@ -100,6 +100,7 @@ class Reserva(BaseModel):
         verbose_name="Cancelada por"
     )
     fecha_cancelacion = models.DateTimeField(null=True, blank=True, verbose_name="Fecha de cancelación")
+    motivo_cancelacion = models.TextField(null=True, blank=True, verbose_name="Motivo de cancelación")
 
     def __str__(self):
         return f'Reserva {self.pk} - {self.area_comun.nombre} - {self.usuario.username}'

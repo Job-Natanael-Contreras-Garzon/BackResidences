@@ -1,10 +1,10 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import AreaComunViewSet
+from django.urls import path
+from . import views
 
+# Router para ViewSets (si los usáramos en el futuro)
 router = DefaultRouter()
-router.register(r'areas', AreaComunViewSet, basename='area-comun')
 
+# URLs específicas para áreas comunes
 urlpatterns = [
-    path('', include(router.urls)),
+    # Define your URL patterns for common areas here
 ]
